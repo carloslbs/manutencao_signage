@@ -1,0 +1,160 @@
+{
+  "kpis": {
+    "total_requisicoes": 118735,
+    "total_horas": 491491.27,
+    "total_finalizadas": 113104,
+    "total_abertas": 5631,
+    "mediana_sla": 47.0,
+    "media_horas_req": 4.14
+  },
+  "kpis_2026": {
+    "req": 8039,
+    "horas": 25665.530999999995,
+    "fin": 5402,
+    "abertas": 2637
+  },
+  "kpis_2025": {
+    "req": 19318,
+    "horas": 75932.06999999996,
+    "fin": 17699,
+    "abertas": 1619
+  },
+  "ofic_req": {
+    "Elétrica": 29204,
+    "Hidráulica": 25184,
+    "Refrigeração": 16286,
+    "Marcenaria": 8234,
+    "Alvenaria": 7983,
+    "Telecomunicações": 5302,
+    "Serralheria": 4721,
+    "Eletrônica": 3885,
+    "Controle De Acesso": 3518,
+    "Pintura/Gesso": 3196
+  },
+  "ofic_horas": {
+    "Elétrica": 105278.26099999974,
+    "Refrigeração": 62572.78000000003,
+    "Alvenaria": 62526.01999999988,
+    "Pintura/Gesso": 56409.0099999999,
+    "Hidráulica": 46195.040000000095,
+    "Marcenaria": 32892.43999999998,
+    "Telecomunicações": 23073.579999999998,
+    "Serralheria": 22948.75999999999,
+    "Controle De Acesso": 15810.619999999999,
+    "Eletrônica": 15228.330000000002
+  },
+  "unidades": {
+    "Escola De Agronomia": 10234,
+    "Pro Reitoria De Graduacao": 8160,
+    "Escola De Veterinária E Zootecnia": 7653,
+    "Instituto De Ciencias Biologicas": 7547,
+    "Instituto De Patologia Tropical E Saúde Pública": 5785,
+    "Instituto De Química": 5590,
+    "Centro De Ensino E Pesquisa Aplicada A Educacao": 3994,
+    "Faculdade De Farmácia": 3873,
+    "Secretaria De Promoção Da Segurança E Direitos Humanos": 3710,
+    "Pró-Reitoria De Assuntos Estudantis": 3664
+  },
+  "status": {
+    "FINALIZADA": 113104,
+    "EM ROTA VISITA": 3833,
+    "AGUARDANDO AVALIAÇÃO REQUISITANTE": 873,
+    "PEDIDO MATERIAL REALIZADO": 432,
+    "SERVIÇO AVALIADO": 287,
+    "AGUARDANDO PEDIDO MATERIAL": 169,
+    "AGUARDANDO VISITA": 35,
+    "ENVIADA": 2
+  },
+  "yearly_req": {
+    "2019": 5294,
+    "2020": 11695,
+    "2021": 12772,
+    "2022": 20658,
+    "2023": 21305,
+    "2024": 19654,
+    "2025": 19318,
+    "2026": 8039
+  },
+  "yearly_divisao": {
+    "2019": {
+      "Predial": 14900,
+      "Equipamentos": 6276
+    },
+    "2020": {
+      "Predial": 35460,
+      "Equipamentos": 10844
+    },
+    "2021": {
+      "Predial": 38936,
+      "Equipamentos": 11792
+    },
+    "2022": {
+      "Predial": 62260,
+      "Equipamentos": 20140
+    },
+    "2023": {
+      "Predial": 66128,
+      "Equipamentos": 19068
+    },
+    "2024": {
+      "Predial": 59080,
+      "Equipamentos": 19524
+    },
+    "2025": {
+      "Predial": 57668,
+      "Equipamentos": 19592
+    },
+    "2026": {
+      "Predial": 23104,
+      "Equipamentos": 9052
+    }
+  },
+  "ofic_req_2026": {
+    "Elétrica": 2398,
+    "Hidráulica": 1915,
+    "Refrigeração": 1534,
+    "Marcenaria": 612,
+    "Alvenaria": 317,
+    "Serralheria": 267,
+    "Pintura/Gesso": 249,
+    "Eletrônica": 221,
+    "Mecânica": 210,
+    "Parecer": 125
+  },
+  "unidades_2026": {
+    "Escola De Agronomia": 723,
+    "Escola De Veterinária E Zootecnia": 552,
+    "Pro Reitoria De Graduacao": 467,
+    "Secretaria De Infraestrutura": 462,
+    "Instituto De Ciencias Biologicas": 449,
+    "Instituto De Patologia Tropical E Saúde Pública": 439,
+    "Instituto De Química": 370,
+    "Faculdade De Farmácia": 286,
+    "Faculdade De Educação": 238,
+    "Faculdade De Direito": 229
+  },
+  "ofic_req_2025": {
+    "Elétrica": 5601,
+    "Hidráulica": 4881,
+    "Refrigeração": 3054,
+    "Marcenaria": 1471,
+    "Alvenaria": 1149,
+    "Serralheria": 694,
+    "Eletrônica": 658,
+    "Pintura/Gesso": 522,
+    "Mecânica": 496,
+    "Informática": 325
+  },
+  "unidades_2025": {
+    "Escola De Agronomia": 1599,
+    "Pro Reitoria De Graduacao": 1359,
+    "Instituto De Ciencias Biologicas": 1341,
+    "Escola De Veterinária E Zootecnia": 1260,
+    "Instituto De Patologia Tropical E Saúde Pública": 1056,
+    "Instituto De Química": 1007,
+    "Centro De Ensino E Pesquisa Aplicada A Educacao": 730,
+    "Faculdade De Farmácia": 666,
+    "Secretaria De Infraestrutura": 630,
+    "Pró-Reitoria De Assuntos Estudantis": 618
+  }
+}
