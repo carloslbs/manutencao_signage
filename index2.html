@@ -1,0 +1,1326 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SEINFRA / UFG — Painel de Manutenção</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+/* ===== RESET ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #09090D;
+  --surface:   #111118;
+  --surface2:  #1A1A24;
+  --surface3:  #22222F;
+  --border:    #252535;
+  --border2:   #333348;
+  --text:      #F0F0FA;
+  --text2:     #9090B0;
+  --text3:     #5A5A7A;
+  --cyan:      #00D4FF;
+  --cyan2:     #00A8CC;
+  --ok:        #00E676;
+  --ok2:       #00B35A;
+  --warn:      #FFB300;
+  --warn2:     #CC8C00;
+  --danger:    #FF4444;
+  --danger2:   #CC2222;
+  --blue:      #4B8BFF;
+  --blue2:     #2966DD;
+  --purple:    #9B59FF;
+  --font:      'Inter', sans-serif;
+  --mono:      'JetBrains Mono', monospace;
+}
+
+html, body {
+  width: 100%; height: 100%; overflow: hidden;
+  background: var(--bg); color: var(--text);
+  font-family: var(--font); font-size: 15px;
+}
+
+/* ===== LAYOUT ===== */
+.signage-wrapper {
+  display: flex; flex-direction: column;
+  width: 100vw; height: 100vh;
+  background: var(--bg);
+}
+
+/* ===== HEADER ===== */
+.sg-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 36px; height: 72px; flex-shrink: 0;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: relative;
+}
+.sg-header::after {
+  content: '';
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--cyan) 0%, var(--blue) 50%, var(--purple) 100%);
+}
+
+.sg-logo {
+  display: flex; flex-direction: column; gap: 2px;
+}
+.sg-logo-name {
+  font-size: 22px; font-weight: 800; letter-spacing: -0.5px;
+  color: var(--cyan);
+  text-shadow: 0 0 24px rgba(0,212,255,0.35);
+}
+.sg-logo-sub {
+  font-size: 12px; font-weight: 800; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--text);
+}
+
+.sg-header-center {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 10px;
+}
+.sg-slide-title {
+  font-size: 16px; font-weight: 800; color: var(--text);
+  letter-spacing: 0.04em;
+  opacity: 0; transition: opacity 0.4s ease;
+}
+.sg-slide-title.visible { opacity: 1; }
+
+.sg-header-right {
+  display: flex; align-items: center; gap: 20px;
+}
+.sg-status {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11px; font-weight: 500; color: var(--ok);
+  background: rgba(0,230,118,0.1); border: 1px solid rgba(0,230,118,0.25);
+  padding: 5px 12px; border-radius: 99px;
+}
+.sg-status-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--ok);
+  animation: pulse-dot 2s infinite;
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(0.8); }
+}
+.sg-clock {
+  text-align: right;
+}
+.sg-clock-time {
+  font-family: var(--mono); font-size: 26px; font-weight: 600;
+  color: var(--text); line-height: 1;
+}
+.sg-clock-date {
+  font-size: 12px; font-weight: 800; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--text); margin-top: 2px;
+}
+
+/* ===== SLIDES CONTAINER ===== */
+.sg-slides {
+  flex: 1; position: relative; overflow: hidden;
+}
+.sg-slide {
+  position: absolute; inset: 0;
+  padding: 24px 36px;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.6s ease;
+  overflow: hidden;
+}
+.sg-slide.active {
+  opacity: 1; pointer-events: auto;
+}
+
+/* ===== FOOTER ===== */
+.sg-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 36px; height: 52px; flex-shrink: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+}
+.sg-footer-source {
+  font-size: 11px; color: var(--text3);
+  font-style: italic;
+}
+.sg-footer-source strong { color: var(--text2); font-style: normal; }
+
+.sg-footer-center {
+  display: flex; align-items: center; gap: 8px;
+}
+.sg-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--border2); cursor: pointer;
+  transition: all 0.3s ease;
+}
+.sg-dot.active {
+  background: var(--cyan);
+  box-shadow: 0 0 10px rgba(0,212,255,0.5);
+  transform: scale(1.3);
+}
+
+/* Progress bar */
+.sg-progress-bar {
+  position: absolute; bottom: 0; left: 0;
+  height: 2px; background: var(--cyan);
+  transition: width 0.1s linear;
+  box-shadow: 0 0 8px rgba(0,212,255,0.6);
+}
+
+.sg-footer-controls {
+  display: flex; align-items: center; gap: 10px;
+}
+.sg-btn {
+  display: flex; align-items: center; gap: 6px;
+  font-family: var(--font); font-size: 12px; font-weight: 500;
+  padding: 7px 14px; border-radius: 6px; cursor: pointer;
+  border: 1px solid var(--border2); background: var(--surface2);
+  color: var(--text2); transition: all 0.2s ease;
+}
+.sg-btn:hover { background: var(--surface3); color: var(--text); border-color: var(--border); }
+.sg-btn.pause-btn { color: var(--warn); border-color: rgba(255,179,0,0.3); }
+.sg-btn.pause-btn:hover { background: rgba(255,179,0,0.1); }
+
+/* ===== KPI CARDS ===== */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px; margin-bottom: 20px;
+}
+.kpi-row-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px; margin-bottom: 20px;
+}
+
+.kpi-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px; padding: 22px 24px;
+  position: relative; overflow: hidden;
+  transition: transform 0.2s ease;
+}
+.kpi-card::before {
+  content: '';
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 3px; border-radius: 0 0 14px 14px;
+}
+.kpi-card.cyan::before { background: var(--cyan); }
+.kpi-card.ok::before { background: var(--ok); }
+.kpi-card.danger::before { background: var(--danger); }
+.kpi-card.warn::before { background: var(--warn); }
+.kpi-card.blue::before { background: var(--blue); }
+.kpi-card.purple::before { background: var(--purple); }
+.kpi-card.neutral::before { background: var(--text3); }
+
+.kpi-card::after {
+  content: '';
+  position: absolute; top: 0; right: 0;
+  width: 80px; height: 80px; border-radius: 50%;
+  opacity: 0.06; transform: translate(20px, -20px);
+}
+.kpi-card.cyan::after { background: var(--cyan); }
+.kpi-card.ok::after { background: var(--ok); }
+.kpi-card.danger::after { background: var(--danger); }
+.kpi-card.warn::after { background: var(--warn); }
+.kpi-card.blue::after { background: var(--blue); }
+.kpi-card.purple::after { background: var(--purple); }
+
+.kpi-icon {
+  width: 42px; height: 42px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; margin-bottom: 16px;
+}
+.kpi-icon.cyan { background: rgba(0,212,255,0.12); }
+.kpi-icon.ok { background: rgba(0,230,118,0.12); }
+.kpi-icon.danger { background: rgba(255,68,68,0.12); }
+.kpi-icon.warn { background: rgba(255,179,0,0.12); }
+.kpi-icon.blue { background: rgba(75,139,255,0.12); }
+.kpi-icon.purple { background: rgba(155,89,255,0.12); }
+
+.kpi-label {
+  font-size: 16px; font-weight: 800; letter-spacing: 0.05em;
+  text-transform: uppercase; color: var(--text); margin-bottom: 8px;
+}
+.kpi-value {
+  font-family: var(--mono); font-size: 42px; font-weight: 800;
+  line-height: 1; color: var(--text);
+}
+.kpi-sub {
+  font-size: 14px; color: rgba(255, 255, 255, 0.9); margin-top: 6px; font-weight: 600;
+
+}
+.kpi-card.cyan .kpi-value { color: var(--cyan); }
+.kpi-card.ok .kpi-value { color: var(--ok); }
+.kpi-card.danger .kpi-value { color: var(--danger); }
+.kpi-card.warn .kpi-value { color: var(--warn); }
+.kpi-card.blue .kpi-value { color: var(--blue); }
+.kpi-card.purple .kpi-value { color: var(--purple); }
+
+/* ===== CONTENT CARDS ===== */
+.content-grid {
+  display: grid; gap: 16px;
+}
+.content-grid-2 { grid-template-columns: 1fr 1fr; }
+.content-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+.content-grid-7030 { grid-template-columns: 7fr 3fr; }
+.content-grid-3070 { grid-template-columns: 3fr 7fr; }
+
+.c-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px; padding: 20px 22px;
+  overflow: hidden;
+}
+.c-card-title {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 18px; font-weight: 800; color: #ffffff;
+  margin-bottom: 6px; letter-spacing: 0.01em;
+}
+.c-card-title::before {
+  content: '';
+  width: 4px; height: 18px; border-radius: 3px;
+  background: var(--cyan); flex-shrink: 0;
+}
+.c-card-sub {
+  font-size: 14px; color: var(--text2); margin-bottom: 16px;
+  padding-left: 14px; font-weight: 500;
+}
+
+/* ===== TABLE ===== */
+.sg-table { width: 100%; border-collapse: collapse; }
+.sg-table th {
+  font-size: 14px; font-weight: 800; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--text2);
+  padding: 12px 10px; border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+.sg-table td {
+  padding: 16px 10px; font-size: 19px;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  color: var(--text); vertical-align: middle;
+}
+.sg-table tr:last-child td { border-bottom: none; }
+.sg-table td.right, .sg-table th.right { text-align: right; }
+.sg-table td.mono { font-family: var(--mono); font-size: 18px; }
+.sg-rank-num {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px; border-radius: 6px;
+  font-size: 13px; font-weight: 700; font-family: var(--mono);
+  background: var(--surface2); color: var(--text3); flex-shrink: 0;
+}
+.sg-rank-1 { background: rgba(0,212,255,0.15); color: var(--cyan); }
+.sg-rank-2 { background: rgba(255,255,255,0.07); color: var(--text); }
+.sg-rank-3 { background: rgba(255,255,255,0.05); color: var(--text2); }
+
+.pill {
+  display: inline-block; font-size: 13px; font-weight: 600;
+  padding: 3px 10px; border-radius: 99px;
+}
+.pill-ok  { background: rgba(0,230,118,0.15); color: var(--ok); }
+.pill-warn { background: rgba(255,179,0,0.15); color: var(--warn); }
+.pill-danger { background: rgba(255,68,68,0.15); color: var(--danger); }
+.pill-blue { background: rgba(75,139,255,0.15); color: var(--blue); }
+
+/* ===== BAR ROWS ===== */
+.bar-item {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
+}
+.bar-item:last-child { margin-bottom: 0; }
+.bar-label {
+  font-size: 11px; color: var(--text2);
+  width: 130px; flex-shrink: 0;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.bar-track {
+  flex: 1; height: 8px; background: var(--surface2);
+  border-radius: 4px; overflow: hidden;
+}
+.bar-fill {
+  height: 100%; border-radius: 4px;
+  transition: width 0.8s cubic-bezier(0.4,0,0.2,1);
+}
+.bar-val {
+  font-family: var(--mono); font-size: 11px;
+  color: var(--text3); width: 70px; text-align: right; flex-shrink: 0;
+}
+
+/* ===== ALERT ITEMS ===== */
+.alert-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 12px 14px; border-radius: 10px; margin-bottom: 8px;
+}
+.alert-item:last-child { margin-bottom: 0; }
+.alert-item.danger { background: rgba(255,68,68,0.08); border: 1px solid rgba(255,68,68,0.2); }
+.alert-item.warn   { background: rgba(255,179,0,0.08); border: 1px solid rgba(255,179,0,0.2); }
+.alert-item.ok     { background: rgba(0,230,118,0.08); border: 1px solid rgba(0,230,118,0.2); }
+.alert-dot-lg {
+  width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 3px;
+}
+.alert-item.danger .alert-dot-lg { background: var(--danger); }
+.alert-item.warn .alert-dot-lg { background: var(--warn); }
+.alert-item.ok .alert-dot-lg { background: var(--ok); }
+.alert-title-lg { font-size: 12px; font-weight: 700; margin-bottom: 2px; }
+.alert-item.danger .alert-title-lg { color: var(--danger); }
+.alert-item.warn .alert-title-lg { color: var(--warn); }
+.alert-item.ok .alert-title-lg { color: var(--ok); }
+.alert-desc-lg { font-size: 11px; color: var(--text2); line-height: 1.4; }
+
+/* ===== CHART WRAP ===== */
+.chart-wrap { position: relative; width: 100%; }
+
+/* ===== SLIDE 1 SPECIFICS ===== */
+#slide-1 .layout {
+  display: flex; flex-direction: column;
+  height: 100%; gap: 16px;
+}
+
+/* ===== SLIDE 3 BIG KPIs ===== */
+.kpi-big {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; padding: 28px 30px;
+  display: flex; flex-direction: column; justify-content: center;
+  position: relative; overflow: hidden;
+}
+.kpi-big::after {
+  content: '';
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 3px;
+}
+.kpi-big.warn::after { background: var(--warn); }
+.kpi-big.blue::after { background: var(--blue); }
+.kpi-big-label {
+  font-size: 14px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--text2); margin-bottom: 12px;
+}
+.kpi-big-value {
+  font-family: var(--mono); font-size: 68px; font-weight: 800;
+  line-height: 1; margin-bottom: 8px;
+}
+.kpi-big.warn .kpi-big-value { color: var(--warn); }
+.kpi-big.blue .kpi-big-value { color: var(--blue); }
+.kpi-big-sub {
+  font-size: 15px; color: var(--text2); font-weight: 500;
+}
+
+/* ===== ANIMATE IN ===== */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.sg-slide.active .kpi-card,
+.sg-slide.active .c-card,
+.sg-slide.active .kpi-big {
+  animation: fadeUp 0.5s ease both;
+}
+.sg-slide.active .kpi-card:nth-child(1) { animation-delay: 0.05s; }
+.sg-slide.active .kpi-card:nth-child(2) { animation-delay: 0.10s; }
+.sg-slide.active .kpi-card:nth-child(3) { animation-delay: 0.15s; }
+.sg-slide.active .kpi-card:nth-child(4) { animation-delay: 0.20s; }
+.sg-slide.active .c-card:nth-child(1)   { animation-delay: 0.25s; }
+.sg-slide.active .c-card:nth-child(2)   { animation-delay: 0.30s; }
+.sg-slide.active .c-card:nth-child(3)   { animation-delay: 0.35s; }
+</style>
+</head>
+<body>
+<div id="sg-loading" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#09090D;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#00D4FF;font-family:'Inter',sans-serif;">
+  <div style="font-size:32px;font-weight:800;letter-spacing:1px;margin-bottom:12px;">SEINFRA / UFG</div>
+  <div style="font-size:16px;color:#9090B0;">Sincronizando dados com o servidor...</div>
+</div>
+
+<div class="signage-wrapper">
+
+  <!-- HEADER -->
+  <header class="sg-header">
+    <div class="sg-logo">
+      <div class="sg-logo-name">SEINFRA / UFG</div>
+      <div class="sg-logo-sub">Superintendência de Infraestrutura — Painel de Manutenção</div>
+    </div>
+    <div class="sg-header-center">
+      <div class="sg-slide-title" id="slideTitle"></div>
+    </div>
+    <div class="sg-header-right">
+      <div class="sg-status">
+        <div class="sg-status-dot"></div>
+        DADOS ATIVOS
+      </div>
+      <div class="sg-clock">
+        <div class="sg-clock-time" id="clockTime">00:00:00</div>
+        <div class="sg-clock-date" id="clockDate"></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- SLIDES -->
+  <div class="sg-slides" id="slidesContainer">
+
+    <!-- =============================== SLIDE 1 =============================== -->
+    <div class="sg-slide active" id="slide-1">
+      <div class="layout">
+        <!-- KPIs -->
+        <div class="kpi-row">
+          <div class="kpi-card cyan">
+            <div class="kpi-icon cyan">📋</div>
+            <div class="kpi-label">Total Requisições</div>
+            <div class="kpi-value">115.290</div>
+            <div class="kpi-sub">2019 – 2026 · todos os status</div>
+          </div>
+          <div class="kpi-card blue">
+            <div class="kpi-icon blue">⏱</div>
+            <div class="kpi-label">Total de Horas</div>
+            <div class="kpi-value">472.612</div>
+            <div class="kpi-sub">horas registradas no período</div>
+          </div>
+          <div class="kpi-card ok">
+            <div class="kpi-icon ok">✅</div>
+            <div class="kpi-label">Finalizadas</div>
+            <div class="kpi-value">109.767</div>
+            <div class="kpi-sub">95,2% do total</div>
+          </div>
+          <div class="kpi-card danger">
+            <div class="kpi-icon danger">🔴</div>
+            <div class="kpi-label">Em Aberto</div>
+            <div class="kpi-value">5.523</div>
+            <div class="kpi-sub">4,8% aguardando resolução</div>
+          </div>
+        </div>
+
+        <!-- Tabelas -->
+        <div class="content-grid content-grid-2" style="flex:1;">
+          <div class="c-card">
+            <div class="c-card-title">Top Oficinas por Requisições</div>
+            <div class="c-card-sub">Volume total de chamados por especialidade</div>
+            <table class="sg-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Oficina</th>
+                  <th class="right">Req.</th>
+                  <th class="right">%</th>
+                </tr>
+              </thead>
+              <tbody id="tb-oficinas"></tbody>
+            </table>
+          </div>
+          <div class="c-card">
+            <div class="c-card-title">Top Unidades Requisitantes</div>
+            <div class="c-card-sub">Unidades com maior volume de chamados abertos</div>
+            <table class="sg-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Unidade</th>
+                  <th class="right">Req.</th>
+                </tr>
+              </thead>
+              <tbody id="tb-unidades"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =============================== SLIDE 2 (2026) =============================== -->
+    <div class="sg-slide" id="slide-2">
+      <div class="layout">
+        <div class="kpi-row">
+          <div class="kpi-card cyan">
+            <div class="kpi-icon cyan">📋</div>
+            <div class="kpi-label">Total Requisições</div>
+            <div class="kpi-value kpi-v-req"></div>
+            <div class="kpi-sub">Ano corrente (2026)</div>
+          </div>
+          <div class="kpi-card blue">
+            <div class="kpi-icon blue">⏱</div>
+            <div class="kpi-label">Total de Horas — 2026</div>
+            <div class="kpi-value kpi-v-hor"></div>
+            <div class="kpi-sub">horas registradas no ano</div>
+          </div>
+          <div class="kpi-card ok">
+            <div class="kpi-icon ok">✅</div>
+            <div class="kpi-label">Finalizadas</div>
+            <div class="kpi-value kpi-v-fin"></div>
+            <div class="kpi-sub">89,3% do total de 2026</div>
+          </div>
+          <div class="kpi-card danger">
+            <div class="kpi-icon danger">🔴</div>
+            <div class="kpi-label">Em Aberto</div>
+            <div class="kpi-value kpi-v-abe"></div>
+            <div class="kpi-sub">10,7% aguardando resolução</div>
+          </div>
+        </div>
+
+        <div class="content-grid content-grid-2" style="flex:1;">
+          <div class="c-card">
+            <div class="c-card-title">Top Oficinas por Requisições (2026)</div>
+            <div class="c-card-sub">Volume de chamados por especialidade este ano</div>
+            <table class="sg-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Oficina</th>
+                  <th class="right">Req.</th>
+                  <th class="right">%</th>
+                </tr>
+              </thead>
+              <tbody id="tb-oficinas-2026"></tbody>
+            </table>
+          </div>
+          <div class="c-card">
+            <div class="c-card-title">Top Unidades Requisitantes (2026)</div>
+            <div class="c-card-sub">Unidades com maior volume de chamados em 2026</div>
+            <table class="sg-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Unidade</th>
+                  <th class="right">Req.</th>
+                </tr>
+              </thead>
+              <tbody id="tb-unidades-2026"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+<!-- =============================== SLIDE 3 (2025) =============================== -->
+    <div class="sg-slide" id="slide-3">
+      <div class="layout">
+        <div class="kpi-row">
+          <div class="kpi-card cyan">
+            <div class="kpi-icon cyan">📋</div>
+            <div class="kpi-label">Total Requisições</div>
+            <div class="kpi-value kpi-v-req"></div>
+            <div class="kpi-sub">Ano anterior (2025)</div>
+          </div>
+          <div class="kpi-card blue">
+            <div class="kpi-icon blue">⏱</div>
+            <div class="kpi-label">Total de Horas — 2025</div>
+            <div class="kpi-value kpi-v-hor"></div>
+            <div class="kpi-sub">horas registradas no ano</div>
+          </div>
+          <div class="kpi-card ok">
+            <div class="kpi-icon ok">✅</div>
+            <div class="kpi-label">Finalizadas</div>
+            <div class="kpi-value kpi-v-fin"></div>
+            <div class="kpi-sub">89,3% do total de 2025</div>
+          </div>
+          <div class="kpi-card danger">
+            <div class="kpi-icon danger">🔴</div>
+            <div class="kpi-label">Em Aberto</div>
+            <div class="kpi-value kpi-v-abe"></div>
+            <div class="kpi-sub">10,7% aguardando resolução</div>
+          </div>
+        </div>
+
+        <div class="content-grid content-grid-2" style="flex:1;">
+          <div class="c-card">
+            <div class="c-card-title">Top Oficinas por Requisições (2025)</div>
+            <div class="c-card-sub">Volume de chamados por especialidade este ano</div>
+            <table class="sg-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Oficina</th>
+                  <th class="right">Req.</th>
+                  <th class="right">%</th>
+                </tr>
+              </thead>
+              <tbody id="tb-oficinas-2025"></tbody>
+            </table>
+          </div>
+          <div class="c-card">
+            <div class="c-card-title">Top Unidades Requisitantes (2025)</div>
+            <div class="c-card-sub">Unidades com maior volume de chamados em 2025</div>
+            <table class="sg-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Unidade</th>
+                  <th class="right">Req.</th>
+                </tr>
+              </thead>
+              <tbody id="tb-unidades-2025"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =============================== SLIDE 4 =============================== -->
+    <div class="sg-slide" id="slide-4">
+      <div style="display:flex;flex-direction:column;height:100%;gap:16px;">
+        <div class="c-card" style="display:flex;flex-direction:column;flex:1;">
+          <div class="c-card-title" style="color: white; font-weight: bold; font-size: 22px;">📈 Evolução Anual de Requisições</div>
+          <div class="c-card-sub" style="font-size:16px;">Volume total de chamados por ano (2019–2026)</div>
+          <div class="chart-wrap" style="flex:1;min-height:0;position:relative;">
+            <canvas id="chartEvolucaoAnual"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =============================== SLIDE 5 =============================== -->
+    <div class="sg-slide" id="slide-5">
+      <div style="display:flex;flex-direction:column;height:100%;gap:16px;">
+        <div class="c-card" style="display:flex;flex-direction:column;flex:1;">
+          <div class="c-card-title" style="color: white; font-weight: bold; font-size: 22px;">🏗️ Divisão: Equipamentos vs Predial</div>
+          <div class="c-card-sub" style="font-size:16px;">Comparativo anual de chamados por divisão (2019–2026)</div>
+          <div class="chart-wrap" style="flex:1;min-height:0;position:relative;">
+            <canvas id="chartDivisaoAnual"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /sg-slides -->
+
+  <!-- FOOTER -->
+  <footer class="sg-footer">
+    <div class="sg-footer-source">
+      Fonte: <strong>Relatório SEINFRA/UFG</strong> · Dados 2019–2026 · <span id="lastUpdate"></span>
+    </div>
+    <div class="sg-footer-center" style="position:relative;">
+      <div class="sg-dot active" onclick="goToSlide(0)" id="dot-0"></div>
+      <div class="sg-dot"        onclick="goToSlide(1)" id="dot-1"></div>
+      <div class="sg-dot"        onclick="goToSlide(2)" id="dot-2"></div>
+      <div class="sg-dot"        onclick="goToSlide(3)" id="dot-3"></div>
+      <div class="sg-dot"        onclick="goToSlide(4)" id="dot-4"></div>
+    </div>
+    <div class="sg-footer-controls">
+      <button class="sg-btn pause-btn" id="pauseBtn" onclick="togglePause()">⏸ Pause</button>
+      <button class="sg-btn" onclick="toggleFullscreen()">⛶ Tela Cheia</button>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+// ========================= DATA =========================
+
+let D = {};
+
+async function fetchDashboardData() {
+  try {
+    document.getElementById('sg-loading').style.display = 'flex';
+
+    // Carrega o arquivo data.json gerado localmente a partir de manutencao_07_2026.json
+    const res = await fetch('data.json?t=' + Date.now());
+    if (!res.ok) throw new Error(`Falha ao carregar data.json (HTTP ${res.status})`);
+    const json = await res.json();
+
+    // Mapeia direto — o data.json já tem a estrutura exata
+    D = json;
+
+    // Atualiza interface
+    renderDashboard();
+
+    // Atualiza KPIs nos cards do Slide 1
+    document.querySelectorAll('#slide-1 .kpi-value').forEach((el, idx) => {
+      if(idx===0) el.textContent = fmtNum(D.kpis.total_requisicoes);
+      if(idx===1) el.textContent = fmtNum(D.kpis.total_horas);
+      if(idx===2) el.textContent = fmtNum(D.kpis.total_finalizadas);
+      if(idx===3) el.textContent = fmtNum(D.kpis.total_abertas);
+    });
+
+    // Atualiza KPIs Slide 2 (2026)
+    if(D.kpis_2026) {
+      const s2 = document.getElementById('slide-2');
+      if (s2) {
+        s2.querySelector('.kpi-v-req').textContent = fmtNum(D.kpis_2026.req);
+        s2.querySelector('.kpi-v-hor').textContent = fmtNum(D.kpis_2026.horas);
+        s2.querySelector('.kpi-v-fin').textContent = fmtNum(D.kpis_2026.fin);
+        s2.querySelector('.kpi-v-abe').textContent = fmtNum(D.kpis_2026.abertas);
+        
+        // Atualiza subtexto de porcentagem
+        const finPct = ((D.kpis_2026.fin / D.kpis_2026.req) * 100).toFixed(1) + '%';
+        const abePct = ((D.kpis_2026.abertas / D.kpis_2026.req) * 100).toFixed(1) + '%';
+        s2.querySelectorAll('.kpi-sub')[2].textContent = finPct + ' do total de 2026';
+        s2.querySelectorAll('.kpi-sub')[3].textContent = abePct + ' aguardando resolução';
+      }
+    }
+
+    // Atualiza KPIs Slide 3 (2025)
+    if(D.kpis_2025) {
+      const s3 = document.getElementById('slide-3');
+      if (s3) {
+        s3.querySelector('.kpi-v-req').textContent = fmtNum(D.kpis_2025.req);
+        s3.querySelector('.kpi-v-hor').textContent = fmtNum(D.kpis_2025.horas);
+        s3.querySelector('.kpi-v-fin').textContent = fmtNum(D.kpis_2025.fin);
+        s3.querySelector('.kpi-v-abe').textContent = fmtNum(D.kpis_2025.abertas);
+        
+        // Atualiza subtexto de porcentagem
+        const finPct = ((D.kpis_2025.fin / D.kpis_2025.req) * 100).toFixed(1) + '%';
+        const abePct = ((D.kpis_2025.abertas / D.kpis_2025.req) * 100).toFixed(1) + '%';
+        s3.querySelectorAll('.kpi-sub')[2].textContent = finPct + ' do total de 2025';
+        s3.querySelectorAll('.kpi-sub')[3].textContent = abePct + ' aguardando resolução';
+      }
+    }
+
+    // Slide 5 removido — sem atualização de KPIs de SLA
+
+    document.getElementById('sg-loading').style.display = 'none';
+
+    // Inicia ou reinicia o slideshow
+    resetProgress();
+
+  } catch (err) {
+    console.error('Erro ao carregar dados:', err);
+    document.getElementById('sg-loading').innerHTML = `<div style="color:#FF4444;font-size:20px;text-align:center;">
+      Erro ao carregar dados.<br>
+      <span style="font-size:14px;color:#9090B0;">${err.message}</span>
+    </div>`;
+  }
+}
+
+
+// ========================= CLOCK =========================
+function updateClock() {
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2,'0');
+  const mm = String(now.getMinutes()).padStart(2,'0');
+  const ss = String(now.getSeconds()).padStart(2,'0');
+  document.getElementById('clockTime').textContent = `${hh}:${mm}:${ss}`;
+
+  const dias = ['DOMINGO','SEGUNDA-FEIRA','TERÇA-FEIRA','QUARTA-FEIRA','QUINTA-FEIRA','SEXTA-FEIRA','SÁBADO'];
+  const meses = ['JANEIRO','FEVEREIRO','MARÇO','ABRIL','MAIO','JUNHO',
+                 'JULHO','AGOSTO','SETEMBRO','OUTUBRO','NOVEMBRO','DEZEMBRO'];
+  document.getElementById('clockDate').textContent =
+    `${dias[now.getDay()]}, ${now.getDate()} DE ${meses[now.getMonth()]} DE ${now.getFullYear()}`;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// Last update
+document.getElementById('lastUpdate').textContent =
+  'Atualizado em ' + new Date().toLocaleDateString('pt-BR', {day:'2-digit',month:'2-digit',year:'numeric'});
+
+// ========================= TABLES =========================
+function fmtNum(n) {
+  return n.toLocaleString('pt-BR');
+}
+function fmtPct(n, total) {
+  return ((n / total) * 100).toFixed(1) + '%';
+}
+
+// Table 1: Oficinas
+function buildOficinas() {
+  const tbody = document.getElementById('tb-oficinas');
+  const entries = Object.entries(D.ofic_req).slice(0, 8);
+  const total = Object.values(D.ofic_req).reduce((a,b) => a+b, 0);
+  entries.forEach(([nome, req], i) => {
+    const tr = document.createElement('tr');
+    const rankCls = i === 0 ? 'sg-rank-1' : i === 1 ? 'sg-rank-2' : i === 2 ? 'sg-rank-3' : '';
+    tr.innerHTML = `
+      <td><span class="sg-rank-num ${rankCls}">${i+1}</span></td>
+      <td>${nome}</td>
+      <td class="right mono">${fmtNum(req)}</td>
+      <td class="right"><span class="pill pill-blue">${fmtPct(req, total)}</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// Table 2: Unidades
+function buildUnidades() {
+  const tbody = document.getElementById('tb-unidades');
+  const entries = Object.entries(D.unidades).slice(0, 8);
+  entries.forEach(([nome, req], i) => {
+    const tr = document.createElement('tr');
+    const rankCls = i === 0 ? 'sg-rank-1' : i === 1 ? 'sg-rank-2' : i === 2 ? 'sg-rank-3' : '';
+    tr.innerHTML = `
+      <td><span class="sg-rank-num ${rankCls}">${i+1}</span></td>
+      <td>${nome}</td>
+      <td class="right mono">${fmtNum(req)}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// Table 1.5: Oficinas 2026
+function buildOficinas2026() {
+  const tbody = document.getElementById('tb-oficinas-2026');
+  if(!tbody) return;
+  const entries = Object.entries(D.ofic_req_2026).slice(0, 8);
+  const total = Object.values(D.ofic_req_2026).reduce((a,b) => a+b, 0);
+  entries.forEach(([nome, req], i) => {
+    const tr = document.createElement('tr');
+    const rankCls = i === 0 ? 'sg-rank-1' : i === 1 ? 'sg-rank-2' : i === 2 ? 'sg-rank-3' : '';
+    tr.innerHTML = `
+      <td><span class="sg-rank-num ${rankCls}">${i+1}</span></td>
+      <td>${nome}</td>
+      <td class="right mono">${fmtNum(req)}</td>
+      <td class="right"><span class="pill pill-blue">${fmtPct(req, total)}</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// Table 2.5: Unidades 2026
+function buildUnidades2026() {
+  const tbody = document.getElementById('tb-unidades-2026');
+  if(!tbody) return;
+  const entries = Object.entries(D.unidades_2026).slice(0, 8);
+  entries.forEach(([nome, req], i) => {
+    const tr = document.createElement('tr');
+    const rankCls = i === 0 ? 'sg-rank-1' : i === 1 ? 'sg-rank-2' : i === 2 ? 'sg-rank-3' : '';
+    tr.innerHTML = `
+      <td><span class="sg-rank-num ${rankCls}">${i+1}</span></td>
+      <td>${nome}</td>
+      <td class="right mono">${fmtNum(req)}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// Table 1.5: Oficinas 2025
+function buildOficinas2025() {
+  const tbody = document.getElementById('tb-oficinas-2025');
+  if(!tbody) return;
+  const entries = Object.entries(D.ofic_req_2025).slice(0, 8);
+  const total = Object.values(D.ofic_req_2025).reduce((a,b) => a+b, 0);
+  entries.forEach(([nome, req], i) => {
+    const tr = document.createElement('tr');
+    const rankCls = i === 0 ? 'sg-rank-1' : i === 1 ? 'sg-rank-2' : i === 2 ? 'sg-rank-3' : '';
+    tr.innerHTML = `
+      <td><span class="sg-rank-num ${rankCls}">${i+1}</span></td>
+      <td>${nome}</td>
+      <td class="right mono">${fmtNum(req)}</td>
+      <td class="right"><span class="pill pill-blue">${fmtPct(req, total)}</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// Table 2.5: Unidades 2025
+function buildUnidades2025() {
+  const tbody = document.getElementById('tb-unidades-2025');
+  if(!tbody) return;
+  const entries = Object.entries(D.unidades_2025).slice(0, 8);
+  entries.forEach(([nome, req], i) => {
+    const tr = document.createElement('tr');
+    const rankCls = i === 0 ? 'sg-rank-1' : i === 1 ? 'sg-rank-2' : i === 2 ? 'sg-rank-3' : '';
+    tr.innerHTML = `
+      <td><span class="sg-rank-num ${rankCls}">${i+1}</span></td>
+      <td>${nome}</td>
+      <td class="right mono">${fmtNum(req)}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// Bar Chart (Slide 3 bar manual)
+function buildBarOficinas() {
+  const container = document.getElementById('barOficinaHoras');
+  if (!container) return;
+  const entries = Object.entries(D.ofic_horas).slice(0, 6);
+  const max = entries[0][1];
+  const colors = ['#00D4FF','#4B8BFF','#9B59FF','#00E676','#FFB300','#FF6B6B'];
+  entries.forEach(([nome, horas], i) => {
+    const pct = ((horas / max) * 100).toFixed(1);
+    const totalH = Object.values(D.ofic_horas).reduce((a,b)=>a+b,0);
+    const div = document.createElement('div');
+    div.className = 'bar-item';
+    div.innerHTML = `
+      <span class="bar-label">${nome}</span>
+      <div class="bar-track">
+        <div class="bar-fill" style="width:${pct}%;background:${colors[i]}"></div>
+      </div>
+      <span class="bar-val">${fmtPct(horas, totalH)}</span>
+    `;
+    container.appendChild(div);
+  });
+}
+
+// ========================= CHARTS =========================
+const chartDefaults = {
+  responsive: true, maintainAspectRatio: false,
+  plugins: { legend: { display: false }, tooltip: { enabled: false } }
+};
+
+Chart.defaults.color = '#9090B0';
+Chart.defaults.font.family = "'Inter', sans-serif";
+Chart.defaults.borderColor = '#252535';
+
+// Chart Status (Donut)
+function buildChartStatus() {
+  const ctx = document.getElementById('chartStatus');
+  if (!ctx) return;
+  if(window.chart1) window.chart1.destroy();
+  const labels = Object.keys(D.status);
+  const values = Object.values(D.status);
+  const colors = ['#00E676','#00D4FF','#FFB300','#4B8BFF','#FF6B6B','#9B59FF','#FF4444','#555577'];
+  window.chart1 = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels,
+      datasets: [{
+        data: values,
+        backgroundColor: colors,
+        borderColor: '#111118',
+        borderWidth: 3,
+        hoverOffset: 4
+      }]
+    },
+    options: {
+      ...chartDefaults,
+      plugins: {
+        legend: {
+          display: true,
+          position: 'right',
+          labels: {
+            color: '#9090B0', font: { size: 10 },
+            boxWidth: 10, padding: 8,
+            generateLabels(chart) {
+              const data = chart.data;
+              const total = data.datasets[0].data.reduce((a,b)=>a+b,0);
+              return data.labels.map((label, i) => ({
+                text: `${label} (${((data.datasets[0].data[i]/total)*100).toFixed(1)}%)`,
+                fillStyle: data.datasets[0].backgroundColor[i],
+                strokeStyle: '#111118',
+                lineWidth: 2,
+                index: i
+              }));
+            }
+          }
+        },
+        tooltip: { enabled: true }
+      },
+      cutout: '60%',
+    }
+  });
+}
+
+// Chart Oficinas (Pie)
+function buildChartOficinas() {
+  if(window.chart2) window.chart2.destroy();
+  const entries = Object.entries(D.ofic_horas).slice(0, 5);
+  const labels = entries.map(([n]) => n);
+  const values = entries.map(([,v]) => v);
+  const colors = ['#00D4FF','#4B8BFF','#9B59FF','#00E676','#FFB300'];
+  const ctx = document.getElementById('chartOficinas');
+  if (!ctx) return;
+  window.chart2 = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels,
+      datasets: [{
+        data: values,
+        backgroundColor: colors,
+        borderColor: '#111118',
+        borderWidth: 3,
+        hoverOffset: 4
+      }]
+    },
+    options: {
+      ...chartDefaults,
+      plugins: {
+        legend: {
+          display: true, position: 'right',
+          labels: { color: '#9090B0', font: { size: 10 }, boxWidth: 10, padding: 8 }
+        },
+        tooltip: { enabled: true }
+      },
+      cutout: '55%'
+    }
+  });
+}
+
+// Chart Anual (Bar)
+function buildChartAnual() {
+  if(window.chart3) window.chart3.destroy();
+  const anos = Object.keys(D.yearly_req);
+  const vals = Object.values(D.yearly_req);
+  const ctx = document.getElementById('chartAnual');
+  if (!ctx) return;
+  window.chart3 = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: anos,
+      datasets: [{
+        data: vals,
+        backgroundColor: anos.map((a,i) => {
+          if (a === '2023' || a === '2024') return '#00D4FF';
+          if (a === '2026') return 'rgba(0,212,255,0.3)';
+          return 'rgba(75,139,255,0.5)';
+        }),
+        borderColor: anos.map((a,i) => a === '2026' ? '#00D4FF44' : '#4B8BFF00'),
+        borderWidth: 1,
+        borderRadius: 6,
+        borderSkipped: false
+      }]
+    },
+    options: {
+      ...chartDefaults,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          enabled: true,
+          callbacks: {
+            label: (ctx) => `  ${ctx.parsed.y.toLocaleString('pt-BR')} req.`
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: 'rgba(255,255,255,0.03)' },
+          ticks: { color: '#9090B0', font: { size: 11 } }
+        },
+        y: {
+          grid: { color: 'rgba(255,255,255,0.05)' },
+          ticks: {
+            color: '#9090B0', font: { size: 10 },
+            callback: v => v >= 1000 ? (v/1000).toFixed(0)+'k' : v
+          }
+        }
+      }
+    }
+  });
+}
+
+
+function renderDashboard() {
+  const safe = (id) => { const el = document.getElementById(id); if(el) el.innerHTML = ''; };
+  safe('tb-oficinas');
+  safe('tb-unidades');
+  safe('tb-oficinas-2026');
+  safe('tb-unidades-2026');
+  safe('tb-oficinas-2025');
+  safe('tb-unidades-2025');
+  safe('barOficinaHoras');
+  
+  buildOficinas();
+  buildUnidades();
+  buildOficinas2026();
+  buildUnidades2026();
+  buildOficinas2025();
+  buildUnidades2025();
+  buildChartsSlide6();
+  const lu = document.getElementById('lastUpdate');
+  if(lu) lu.textContent = 'Sincronizado em ' + new Date().toLocaleTimeString('pt-BR');
+}
+
+
+
+
+
+
+
+
+
+// Plugin inline para exibir valores acima das barras
+const datalabelsPlugin = {
+  id: 'datalabels',
+  afterDatasetsDraw(chart) {
+    const ctx = chart.ctx;
+    chart.data.datasets.forEach((dataset, i) => {
+      const meta = chart.getDatasetMeta(i);
+      if (meta.hidden) return;
+      meta.data.forEach((bar, index) => {
+        const value = dataset.data[index];
+        if (!value) return;
+        const label = value >= 1000 ? (value/1000).toFixed(1).replace('.',',') + 'k' : value.toString();
+        ctx.save();
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = 'bold 14px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText(label, bar.x, bar.y - 4);
+        ctx.restore();
+      });
+    });
+  }
+};
+
+// Gráfico Slide 4 — Evolução Anual de Requisições
+function buildChartEvolucaoAnual() {
+  const ctx = document.getElementById('chartEvolucaoAnual');
+  if (!ctx) return;
+  if (window.chartEvolAnual) window.chartEvolAnual.destroy();
+  const anos = Object.keys(D.yearly_req);
+  const reqs = Object.values(D.yearly_req);
+  window.chartEvolAnual = new Chart(ctx, {
+    type: 'bar',
+    plugins: [datalabelsPlugin],
+    data: {
+      labels: anos,
+      datasets: [{
+        label: 'Requisições',
+        data: reqs,
+        backgroundColor: anos.map((_, i) => i === anos.length - 1 ? '#00D4FF' : '#4B8BFF'),
+        borderRadius: 8,
+        borderSkipped: false
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      layout: { padding: { top: 30 } },
+      plugins: {
+        legend: { display: true, labels: { color: '#FFFFFF', font: { size: 15, weight: 'bold' } } },
+        tooltip: { enabled: true }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          grid: { color: '#2A2A35' },
+          ticks: { color: '#C0C0D8', font: { size: 14 }, callback: v => v >= 1000 ? (v/1000).toFixed(0)+'k' : v }
+        },
+        x: {
+          grid: { display: false },
+          ticks: { color: '#FFFFFF', font: { size: 15, weight: '600' } }
+        }
+      }
+    }
+  });
+}
+
+// Gráfico Slide 5 — Divisão: Equipamentos vs Predial
+function buildChartDivisaoAnual() {
+  const ctx = document.getElementById('chartDivisaoAnual');
+  if (!ctx) return;
+  if (window.chartDivAnual) window.chartDivAnual.destroy();
+  const anos = Object.keys(D.yearly_req);
+  const predialData = anos.map(a => D.yearly_divisao[a] ? D.yearly_divisao[a].Predial : 0);
+  const equipData   = anos.map(a => D.yearly_divisao[a] ? D.yearly_divisao[a].Equipamentos : 0);
+  window.chartDivAnual = new Chart(ctx, {
+    type: 'bar',
+    plugins: [datalabelsPlugin],
+    data: {
+      labels: anos,
+      datasets: [
+        { label: 'Predial',       data: predialData, backgroundColor: '#FFB300', borderRadius: 8, borderSkipped: false },
+        { label: 'Equipamentos',  data: equipData,   backgroundColor: '#00E676', borderRadius: 8, borderSkipped: false }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      layout: { padding: { top: 30 } },
+      plugins: {
+        legend: {
+          display: true,
+          labels: { color: '#FFFFFF', font: { size: 15, weight: 'bold' }, padding: 20, boxWidth: 18 }
+        },
+        tooltip: { enabled: true }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          grid: { color: '#2A2A35' },
+          ticks: { color: '#C0C0D8', font: { size: 14 }, callback: v => v >= 1000 ? (v/1000).toFixed(0)+'k' : v }
+        },
+        x: {
+          grid: { display: false },
+          ticks: { color: '#FFFFFF', font: { size: 15, weight: '600' } }
+        }
+      }
+    }
+  });
+}
+
+// Mantida para compatibilidade (não usada)
+function buildChartsSlide6() {
+  buildChartEvolucaoAnual();
+  buildChartDivisaoAnual();
+}
+
+// ========================= SLIDESHOW =========================
+const SLIDES_COUNT = 5;
+const SLIDE_DURATION = 25000; // 25 segundos
+
+const slideTitles = [
+  'Visão Geral — Histórico 2019-2026',
+  'Visão Geral — Ano Corrente (2026)',
+  'Visão Geral — Ano Anterior (2025)',
+  'Evolução Anual de Requisições',
+  'Divisão: Equipamentos vs Predial'
+];
+
+let currentSlide = 0;
+let isPaused = false;
+let progressStart = null;
+let rafId = null;
+let slideTimeout = null;
+
+function goToSlide(idx) {
+  // Remove active
+  document.querySelectorAll('.sg-slide').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.sg-dot').forEach(d => d.classList.remove('active'));
+
+  // Activate target
+  document.getElementById(`slide-${idx + 1}`).classList.add('active');
+  document.getElementById(`dot-${idx}`).classList.add('active');
+
+  // Update title
+  const titleEl = document.getElementById('slideTitle');
+  titleEl.textContent = slideTitles[idx];
+  titleEl.classList.remove('visible');
+  setTimeout(() => titleEl.classList.add('visible'), 50);
+
+  currentSlide = idx;
+
+  // Reset progress
+  resetProgress();
+}
+
+function nextSlide() {
+  goToSlide((currentSlide + 1) % SLIDES_COUNT);
+}
+
+function resetProgress() {
+  if (rafId) cancelAnimationFrame(rafId);
+  if (slideTimeout) clearTimeout(slideTimeout);
+  progressStart = null;
+
+  if (!isPaused) {
+    startProgress();
+    slideTimeout = setTimeout(nextSlide, SLIDE_DURATION);
+  }
+}
+
+function startProgress() {
+  const startTime = performance.now();
+  function tick(now) {
+    if (isPaused) return;
+    const elapsed = now - startTime;
+    const pct = Math.min((elapsed / SLIDE_DURATION) * 100, 100);
+    // we don't have a visible progress bar in footer, but could add one
+    if (pct < 100) {
+      rafId = requestAnimationFrame(tick);
+    }
+  }
+  rafId = requestAnimationFrame(tick);
+}
+
+function togglePause() {
+  isPaused = !isPaused;
+  const btn = document.getElementById('pauseBtn');
+  if (isPaused) {
+    btn.textContent = '▶ Play';
+    btn.classList.remove('pause-btn');
+    if (rafId) cancelAnimationFrame(rafId);
+    if (slideTimeout) clearTimeout(slideTimeout);
+  } else {
+    btn.textContent = '⏸ Pause';
+    btn.classList.add('pause-btn');
+    resetProgress();
+  }
+}
+
+function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen();
+  } else {
+    document.exitFullscreen();
+  }
+}
+
+// Init
+goToSlide(0);
+fetchDashboardData();
+setInterval(fetchDashboardData, 30 * 60 * 1000); // 30 minutos
+</script>
+</body>
+</html>
