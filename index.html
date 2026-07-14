@@ -51,7 +51,7 @@ html, body {
 /* ===== HEADER ===== */
 .sg-header {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 0 36px; height: 72px; flex-shrink: 0;
+  padding: 0 24px; height: 52px; flex-shrink: 0;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   position: relative;
@@ -67,7 +67,7 @@ html, body {
   display: flex; flex-direction: column; gap: 2px;
 }
 .sg-logo-name {
-  font-size: 22px; font-weight: 800; letter-spacing: -0.5px;
+  font-size: 18px; font-weight: 800; letter-spacing: -0.5px;
   color: var(--cyan);
   text-shadow: 0 0 24px rgba(0,212,255,0.35);
 }
@@ -109,11 +109,11 @@ html, body {
   text-align: right;
 }
 .sg-clock-time {
-  font-family: var(--mono); font-size: 26px; font-weight: 600;
+  font-family: var(--mono); font-size: 20px; font-weight: 600;
   color: var(--text); line-height: 1;
 }
 .sg-clock-date {
-  font-size: 12px; font-weight: 800; letter-spacing: 0.08em;
+  font-size: 11px; font-weight: 800; letter-spacing: 0.08em;
   text-transform: uppercase; color: var(--text); margin-top: 2px;
 }
 
@@ -123,7 +123,7 @@ html, body {
 }
 .sg-slide {
   position: absolute; inset: 0;
-  padding: 16px 24px;
+  padding: 8px 16px;
   opacity: 0; pointer-events: none;
   transition: opacity 0.6s ease;
   overflow: hidden;
@@ -135,13 +135,13 @@ html, body {
   display: flex;
   flex-direction: column;
   height: 100%;
-  gap: 12px;
+  gap: 8px;
 }
 
 /* ===== FOOTER ===== */
 .sg-footer {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 0 36px; height: 52px; flex-shrink: 0;
+  padding: 0 20px; height: 36px; flex-shrink: 0;
   background: var(--surface);
   border-top: 1px solid var(--border);
 }
@@ -264,7 +264,7 @@ html, body {
 
 /* ===== CONTENT CARDS ===== */
 .content-grid {
-  display: grid; gap: 16px;
+  display: grid; gap: 8px;
 }
 .content-grid-2 { grid-template-columns: 1fr 1fr; }
 .content-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
@@ -274,44 +274,44 @@ html, body {
 .c-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 14px; padding: 20px 22px;
+  border-radius: 12px; padding: 12px 16px;
   overflow: hidden;
 }
 .c-card-title {
   display: flex; align-items: center; gap: 10px;
-  font-size: 18px; font-weight: 800; color: #ffffff;
-  margin-bottom: 6px; letter-spacing: 0.01em;
+  font-size: 15px; font-weight: 800; color: #ffffff;
+  margin-bottom: 4px; letter-spacing: 0.01em;
 }
 .c-card-title::before {
   content: '';
-  width: 4px; height: 18px; border-radius: 3px;
+  width: 4px; height: 15px; border-radius: 3px;
   background: var(--cyan); flex-shrink: 0;
 }
 .c-card-sub {
-  font-size: 14px; color: var(--text2); margin-bottom: 16px;
+  font-size: 12px; color: var(--text2); margin-bottom: 8px;
   padding-left: 14px; font-weight: 500;
 }
 
 /* ===== TABLE ===== */
 .sg-table { width: 100%; border-collapse: collapse; }
 .sg-table th {
-  font-size: 13px; font-weight: 800; letter-spacing: 0.1em;
+  font-size: 11px; font-weight: 800; letter-spacing: 0.1em;
   text-transform: uppercase; color: var(--text2);
-  padding: 8px 10px; border-bottom: 1px solid var(--border);
+  padding: 5px 8px; border-bottom: 1px solid var(--border);
   text-align: left;
 }
 .sg-table td {
-  padding: 8px 10px; font-size: 15px;
+  padding: 5px 8px; font-size: 13px;
   border-bottom: 1px solid rgba(255,255,255,0.03);
   color: var(--text); vertical-align: middle;
 }
 .sg-table tr:last-child td { border-bottom: none; }
 .sg-table td.right, .sg-table th.right { text-align: right; }
-.sg-table td.mono { font-family: var(--mono); font-size: 14px; }
+.sg-table td.mono { font-family: var(--mono); font-size: 12px; }
 .sg-rank-num {
   display: inline-flex; align-items: center; justify-content: center;
-  width: 26px; height: 26px; border-radius: 6px;
-  font-size: 13px; font-weight: 700; font-family: var(--mono);
+  width: 22px; height: 22px; border-radius: 5px;
+  font-size: 11px; font-weight: 700; font-family: var(--mono);
   background: var(--surface2); color: var(--text3); flex-shrink: 0;
 }
 .sg-rank-1 { background: rgba(0,212,255,0.15); color: var(--cyan); }
