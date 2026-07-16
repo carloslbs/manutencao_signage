@@ -306,23 +306,23 @@ html, body {
 /* ===== TABLE ===== */
 .sg-table { width: 100%; border-collapse: collapse; }
 .sg-table th {
-  font-size: 11px; font-weight: 800; letter-spacing: 0.1em;
+  font-size: 12px; font-weight: 800; letter-spacing: 0.1em;
   text-transform: uppercase; color: var(--text2);
-  padding: 5px 8px; border-bottom: 1px solid var(--border);
+  padding: 8px 8px; border-bottom: 1px solid var(--border);
   text-align: left;
 }
 .sg-table td {
-  padding: 5px 8px; font-size: 13px;
+  padding: 10px 8px; font-size: 16px;
   border-bottom: 1px solid rgba(255,255,255,0.03);
   color: var(--text); vertical-align: middle;
 }
 .sg-table tr:last-child td { border-bottom: none; }
 .sg-table td.right, .sg-table th.right { text-align: right; }
-.sg-table td.mono { font-family: var(--mono); font-size: 12px; }
+.sg-table td.mono { font-family: var(--mono); font-size: 15px; }
 .sg-rank-num {
   display: inline-flex; align-items: center; justify-content: center;
-  width: 22px; height: 22px; border-radius: 5px;
-  font-size: 11px; font-weight: 700; font-family: var(--mono);
+  width: 28px; height: 28px; border-radius: 5px;
+  font-size: 14px; font-weight: 700; font-family: var(--mono);
   background: var(--surface2); color: var(--text3); flex-shrink: 0;
 }
 .sg-rank-1 { background: rgba(0,212,255,0.15); color: var(--cyan); }
@@ -330,8 +330,8 @@ html, body {
 .sg-rank-3 { background: rgba(255,255,255,0.05); color: var(--text2); }
 
 .pill {
-  display: inline-block; font-size: 13px; font-weight: 600;
-  padding: 3px 10px; border-radius: 99px;
+  display: inline-block; font-size: 14px; font-weight: 600;
+  padding: 4px 12px; border-radius: 99px;
 }
 .pill-ok  { background: rgba(0,230,118,0.15); color: var(--ok); }
 .pill-warn { background: rgba(255,179,0,0.15); color: var(--warn); }
@@ -818,7 +818,7 @@ function fmtPct(n, total) {
 // Table 1: Oficinas
 function buildOficinas() {
   const tbody = document.getElementById('tb-oficinas');
-  const entries = Object.entries(D.ofic_req).slice(0, 8);
+  const entries = Object.entries(D.ofic_req).slice(0, 6);
   const total = Object.values(D.ofic_req).reduce((a,b) => a+b, 0);
   entries.forEach(([nome, req], i) => {
     const tr = document.createElement('tr');
@@ -836,7 +836,7 @@ function buildOficinas() {
 // Table 2: Unidades
 function buildUnidades() {
   const tbody = document.getElementById('tb-unidades');
-  const entries = Object.entries(D.unidades).slice(0, 8);
+  const entries = Object.entries(D.unidades).slice(0, 6);
   entries.forEach(([nome, req], i) => {
     const tr = document.createElement('tr');
     const rankCls = i === 0 ? 'sg-rank-1' : i === 1 ? 'sg-rank-2' : i === 2 ? 'sg-rank-3' : '';
@@ -853,7 +853,7 @@ function buildUnidades() {
 function buildOficinas2026() {
   const tbody = document.getElementById('tb-oficinas-2026');
   if(!tbody) return;
-  const entries = Object.entries(D.ofic_req_2026).slice(0, 8);
+  const entries = Object.entries(D.ofic_req_2026).slice(0, 6);
   const total = Object.values(D.ofic_req_2026).reduce((a,b) => a+b, 0);
   entries.forEach(([nome, req], i) => {
     const tr = document.createElement('tr');
@@ -872,7 +872,7 @@ function buildOficinas2026() {
 function buildUnidades2026() {
   const tbody = document.getElementById('tb-unidades-2026');
   if(!tbody) return;
-  const entries = Object.entries(D.unidades_2026).slice(0, 8);
+  const entries = Object.entries(D.unidades_2026).slice(0, 6);
   entries.forEach(([nome, req], i) => {
     const tr = document.createElement('tr');
     const rankCls = i === 0 ? 'sg-rank-1' : i === 1 ? 'sg-rank-2' : i === 2 ? 'sg-rank-3' : '';
@@ -889,7 +889,7 @@ function buildUnidades2026() {
 function buildOficinas2025() {
   const tbody = document.getElementById('tb-oficinas-2025');
   if(!tbody) return;
-  const entries = Object.entries(D.ofic_req_2025).slice(0, 8);
+  const entries = Object.entries(D.ofic_req_2025).slice(0, 6);
   const total = Object.values(D.ofic_req_2025).reduce((a,b) => a+b, 0);
   entries.forEach(([nome, req], i) => {
     const tr = document.createElement('tr');
@@ -908,7 +908,7 @@ function buildOficinas2025() {
 function buildUnidades2025() {
   const tbody = document.getElementById('tb-unidades-2025');
   if(!tbody) return;
-  const entries = Object.entries(D.unidades_2025).slice(0, 8);
+  const entries = Object.entries(D.unidades_2025).slice(0, 6);
   entries.forEach(([nome, req], i) => {
     const tr = document.createElement('tr');
     const rankCls = i === 0 ? 'sg-rank-1' : i === 1 ? 'sg-rank-2' : i === 2 ? 'sg-rank-3' : '';
